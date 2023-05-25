@@ -15,6 +15,7 @@ var (
 )
 
 func main() {
+	os.Setenv("FYNE_THEME", "light")
 	h = huaweiapi.New()
 	a = app.NewWithID("modemBandSelector")
 	w = a.NewWindow("modemBandSelector")
