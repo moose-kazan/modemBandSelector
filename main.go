@@ -8,11 +8,15 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 )
 
 var (
 	a fyne.App
 	w fyne.Window
+	deviceInfoForm *widget.Form
+	signalInfoForm *widget.Form
+	selectBandsForm *widget.Form
 	h *huaweiapi.HuaweiAPI
 )
 
@@ -21,28 +25,31 @@ func main() {
 	h = huaweiapi.New()
 	a = app.NewWithID("modemBandSelector")
 	w = a.NewWindow("modemBandSelector")
-	w.SetMainMenu(BuildMenu())
+	w.SetOnClosed(OnClose)
+	deviceInfoForm = widget.NewForm()
+	signalInfoForm = widget.NewForm()
+	selectBandsForm = widget.NewForm()
+
 	w.Resize(fyne.NewSize(640, 480))
 	h = huaweiapi.New()
 
-	content := container.NewMax()
+	contentInfo := container.NewVBox(
+		widget.NewLabelWithStyle("Device Info", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		deviceInfoForm,
+		widget.NewLabelWithStyle("Signal Info", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		signalInfoForm,
+	)
+	contentBands := container.NewVBox(
+		widget.NewLabelWithStyle("Supported Bands", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		selectBandsForm,
+	)
+	content := container.NewHBox(
+		contentInfo,
+		contentBands,
+	)
 	w.SetContent(content)
 
-	actionConnect()
-
+	Connect()
+	
 	w.ShowAndRun()
-
-	/*
-		h.Connect("192.168.8.1")
-		//fmt.Println(h.DeviceSignal())
-		//fmt.Println(h.DeviceInformation())
-		data, _ := h.NetNetMode()
-		lteband, _ := strconv.ParseInt(data.LTEBand, 16, 64)
-		for i := 1; i < 66; i++ {
-			tmp := int64(math.Pow(2, float64(i-1)))
-			if (lteband & tmp) == tmp {
-				fmt.Println("Band:", i)
-			}
-		}
-	*/
 }

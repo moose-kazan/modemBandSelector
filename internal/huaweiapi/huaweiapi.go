@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 type HuaweiAPI struct {
@@ -16,29 +17,29 @@ type HuaweiAPI struct {
 
 type SignalInfo struct {
 	XMLName     xml.Name `xml:"response"`
-	Band        string   `xml:"band"`
-	UlBandwidth string   `xml:"ulbandwidth"`
-	DlBandwidth string   `xml:"dlbandwidth"`
+	Band        string   `xml:"band,omitempty"`
+	UlBandwidth string   `xml:"ulbandwidth,omitempty"`
+	DlBandwidth string   `xml:"dlbandwidth,omitempty"`
 }
 
 type DeviceInformation struct {
 	XMLName         xml.Name `xml:"response"`
-	DeviceName      string   `xml:"DeviceName"`
-	SerialNumber    string   `xml:"SerialNumber"`
-	Imei            string   `xml:"Imei"`
-	Imsi            string   `xml:"Imsi"`
-	HardwareVersion string   `xml:"HardwareVersion"`
-	SoftwareVersion string   `xml:"SoftwareVersion"`
-	WebUIVersion    string   `xml:"WebUIVersion"`
-	SupportMode     string   `xml:"supportmode"`
-	WorkMode        string   `xml:"workmode"`
+	DeviceName      string   `xml:"DeviceName,omitempty"`
+	SerialNumber    string   `xml:"SerialNumber,omitempty"`
+	Imei            string   `xml:"Imei,omitempty"`
+	Imsi            string   `xml:"Imsi,omitempty"`
+	HardwareVersion string   `xml:"HardwareVersion,omitempty"`
+	SoftwareVersion string   `xml:"SoftwareVersion,omitempty"`
+	WebUIVersion    string   `xml:"WebUIVersion,omitempty"`
+	SupportMode     string   `xml:"supportmode,omitempty"`
+	WorkMode        string   `xml:"workmode,omitempty"`
 }
 
 type NetNetMode struct {
 	XMLName     xml.Name `xml:"response"`
-	NetworkMode string   `xml:"NetworkMode"`
-	NetworkBand string   `xml:"NetworkBand"`
-	LTEBand     string   `xml:"LTEBand"`
+	NetworkMode string   `xml:"NetworkMode,omitempty"`
+	NetworkBand string   `xml:"NetworkBand,omitempty"`
+	LTEBand     string   `xml:"LTEBand,omitempty"`
 }
 
 type HuaweiAPIIface interface {
@@ -107,8 +108,10 @@ func (h *HuaweiAPI) Connect(host string) error {
 		return err
 	}
 
-	h.session_id = xmlResp.SesInfo
+	h.session_id = strings.Replace(xmlResp.SesInfo, "SessionID=", "", 1)
 	h.token = xmlResp.TokInfo
+
+	//fmt.Println(h.session_id, " ", h.token);
 
 	return nil
 }
@@ -125,7 +128,7 @@ func (h *HuaweiAPI) DeviceInformation() (*DeviceInformation, error) {
 }
 
 func (h *HuaweiAPI) DeviceSignal() (*SignalInfo, error) {
-	var rv SignalInfo
+	var rv SignalInfo = SignalInfo{Band: "unknown", UlBandwidth: "unknown", DlBandwidth: "unknown"}
 	err := h.httpGetXml(fmt.Sprintf("http://%s/api/device/signal", h.host), &rv)
 
 	if err != nil {
